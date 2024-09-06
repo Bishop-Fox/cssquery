@@ -22,7 +22,7 @@ python cssquery.py -v theme.css .theme-dark .background-primary
 
 ## Installation
 
-Clone the repository: git clone https://github.com/your-username/cssquery.git
+Clone the repository: git clone https://github.com/wbishop-foxsername/cssquery.git
 Navigate to the repository directory: cd cssquery
 Run the script: python cssquery.py [-v] <file_path> <selector1> <selector2> ...
 
