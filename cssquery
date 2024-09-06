@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+
+import re
+import sys
+
+def query_css(file_path, *selectors):
+    """
+    Query a CSS file for rules that match the specified selectors.
+
+    Args:
+        file_path (str): The path to the CSS file.
+        *selectors (str): The selectors to match (e.g., ".theme-dark", ".background-primary").
+
+    Returns:
+        None
+    """
+    # Open the CSS file in read mode
+    with open(file_path, "r") as file:
+        # Read the entire file into a string
+        content = file.read()
+
+    # Create a regular expression pattern to match the selectors
+    pattern = r"\.(?:%s)\s*{[^}]*}" % "|".join(selectors)
+    # Use the re.findall function to find all matches of the pattern in the CSS content
+    matches = re.findall(pattern, content, re.DOTALL)
+
+    # Print out each match
+    for match in matches:
+        print(match)
+
+def main():
+    # Check if the correct number of command-line arguments were provided
+    if len(sys.argv) < 3:
+        print("Usage: python cssquery.py [-v] <file_path> <selector1> <selector2> ...")
+        sys.exit(1)
+
+    # Check for verbose flag
+    verbose = False
+    if sys.argv[1] == "-v":
+        verbose = True
+        sys.argv = sys.argv[1:]
+
+    # Get the file path and selectors from the command-line arguments
+    file_path = sys.argv[1]
+    selectors = sys.argv[2:]
+
+    if verbose:
+        print(f"File Path: {file_path}")
+        print(f"Selectors: {selectors}")
+
+    # Call the query_css function with the file path and selectors
+    query_css(file_path, *selectors)
+
+if __name__ == "__main__":
+    main()
