@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
 import re
 import sys
 
@@ -12,21 +11,33 @@ def query_css(file_path, *selectors):
         *selectors (str): The selectors to match (e.g., ".theme-dark", ".background-primary").
 
     Returns:
-        None
+        dict: A dictionary containing the matched selectors and their corresponding CSS rules.
     """
+
     # Open the CSS file in read mode
     with open(file_path, "r") as file:
         # Read the entire file into a string
         content = file.read()
 
     # Create a regular expression pattern to match the selectors
+    # Remove the dot (.) from the selectors if present
+    selectors = [selector.lstrip('.') for selector in selectors]
     pattern = r"\.(?:%s)\s*{[^}]*}" % "|".join(selectors)
     # Use the re.findall function to find all matches of the pattern in the CSS content
     matches = re.findall(pattern, content, re.DOTALL)
 
-    # Print out each match
+    # Create a dictionary to store the matched selectors and their corresponding CSS rules
+    result = {}
     for match in matches:
-        print(match)
+        # Extract the selector and CSS rules from the match
+        selector = re.search(r"\.(.*?)\s*{", match).group(1)
+        css_rules = re.search(r"{(.*?)}", match, re.DOTALL).group(1).strip()
+        # Add the selector and CSS rules to the result dictionary
+        if selector not in result:
+            result[selector] = []
+            result[selector].append(css_rules)
+
+    return result
 
 def main():
     # Check if the correct number of command-line arguments were provided
@@ -49,7 +60,14 @@ def main():
         print(f"Selectors: {selectors}")
 
     # Call the query_css function with the file path and selectors
-    query_css(file_path, *selectors)
+    result = query_css(file_path, *selectors)
+
+    # Print out the result
+    for selector, css_rules in result.items():
+        print(f"Selector: .{selector}")
+        for i, css_rule in enumerate(css_rules):
+            print()
+            print(f"CSS Rule {i+1}: {css_rule}")
 
 if __name__ == "__main__":
     main()
