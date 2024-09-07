@@ -3,11 +3,12 @@
 import re
 import os
 
-def cssquery(file_path, css_query, verbose=False):
+def cssquery(file_path, css_query=None, verbose=False):
     """Extracts CSS selector contents or specific property values from a CSS file."""
     if verbose:
         print(f"File Path: {file_path}")
-        print(f"CSS Query: {css_query}")
+        if css_query:
+            print(f"CSS Query: {css_query}")
 
     # Check if file exists
     if not os.path.isfile(file_path):
@@ -20,64 +21,107 @@ def cssquery(file_path, css_query, verbose=False):
     with open(file_path, 'r') as file:
         css_content = file.read()
 
-    # Define a regex pattern based on the query
-    if '.' in css_query:
-        # It's a property query
-        selector, property_name = css_query.rsplit('.', 1)
-        if verbose:
-            print(f"Selector: {selector}, Property: {property_name}")
-        # Find all instances of the selector
-        pattern = rf'{selector}\s*\{{(.*?)\}}'
-        matches = re.findall(pattern, css_content, re.DOTALL)
-        if verbose:
-            print(f"Matches for {selector}: {matches}")
-        for match in matches:
-            # Find the property value within the selector
-            prop_pattern = rf'{property_name}\s*:\s*(.*?);'
-            prop_match = re.search(prop_pattern, match)
-            if prop_match:
-                if verbose:
-                    print(f"Property found: {prop_match.group(1)}")
-                return prop_match.group(1).strip()
-        return None
-    else:
-        # It's a selector query
-        pattern = rf'{css_query}\s*\{{(.*?)\}}'
-        matches = re.findall(pattern, css_content, re.DOTALL)
-        if matches:
-            return [match.strip() for match in matches]
+    if css_query:
+        # Define a regex pattern based on the query
+        if '.' in css_query:
+            # It's a property query
+            selector, property_name = css_query.rsplit('.', 1)
+            if verbose:
+                print(f"Selector: {selector}, Property: {property_name}")
+            # Find all instances of the selector
+            pattern = rf'{selector}\s*\{{(.*?)\}}'
+            matches = re.findall(pattern, css_content, re.DOTALL)
+            if verbose:
+                print(f"Matches for {selector}: {matches}")
+            for match in matches:
+                # Find the property value within the selector
+                prop_pattern = rf'{property_name}\s*:\s*(.*?);'
+                prop_match = re.search(prop_pattern, match)
+                if prop_match:
+                    if verbose:
+                        print(f"Property found: {prop_match.group(1)}")
+                    return prop_match.group(1).strip()
+            return None
+        else:
+            # It's a selector query
+            pattern = rf'{css_query}\s*\{{(.*?)\}}'
+            matches = re.findall(pattern, css_content, re.DOTALL)
+            if matches:
+                return [match.strip() for match in matches]
     return None
+
+def list_selectors(file_path, verbose=False):
+    """Lists all unique selectors in a CSS file."""
+    if verbose:
+        print(f"File Path: {file_path}")
+
+    # Check if file exists
+    if not os.path.isfile(file_path):
+        return f'File not found: {file_path}'
+
+    # Read the CSS file
+    if verbose:
+        print(f"Reading CSS file at {file_path}")
+
+    with open(file_path, 'r') as file:
+        css_content = file.read()
+
+    # Regex to find all selectors (before the opening curly brace)
+    # pattern = r'([^{]+)\s*\{'
+    # pattern = r'([a-zA-Z0-9\-_\.#\s>+\[\]=:"\'()]+)\s*(?={|\s*\w+\s*:|\s*\@|\s*$|\s*;|\s*\n)'
+    pattern = r'([a-zA-Z0-9\-_\.#\s>+\[\]=:"\'()]+)\s*(?=\{)'
+
+    matches = re.findall(pattern, css_content)
+    selectors = set()
+    for match in matches:
+        # Split selectors by comma and strip whitespace
+        selectors.update(selector.strip() for selector in match.split(','))
+
+    return sorted(selectors)
 
 def main():
     import sys
 
     if len(sys.argv) < 2:
-        print("Usage: cssquery [-v] /path/to/file.css.selector[.property]")
+        print("Usage: cssquery [v] [ls] /path/to/file.css.selector[.property] or cssquery [v] [ls] /path/to/file.css")
         sys.exit(1)
 
-    # Check for verbose flag
-    verbose = '-v' in sys.argv
-    input_str = sys.argv[1] if not verbose else sys.argv[2]
+    # Check for flags
+    verbose = 'v' in sys.argv
+    list_mode = 'ls' in sys.argv
 
-    # Correctly split the input into file path and query
-    parts = input_str.split('.css.', 1)
-    if len(parts) != 2:
-        print('Invalid input format. Please use: /path/to/file.css.selector[.property]')
-        sys.exit(1)
+    # Determine the input string based on flags
+    input_str = sys.argv[-1]  # The last argument should be the file path or query
 
-    file_path = parts[0] + '.css'
-    css_query = parts[1]
-
-    result = cssquery(file_path, css_query, verbose)
-
-    if result:
-        if isinstance(result, list):
-            for res in result:
-                print(res)
+    if list_mode:
+        # List selectors mode
+        selectors = list_selectors(input_str, verbose)
+        if selectors:
+            for selector in selectors:
+                print(selector)
         else:
-            print(result)
+            print("No selectors found.")
     else:
-        print("No match found.")
+        # Regular query mode
+        # Correctly split the input into file path and query
+        parts = input_str.split('.css.', 1)
+        if len(parts) != 2:
+            print('Invalid input format. Please use: /path/to/file.css.selector[.property]')
+            sys.exit(1)
+
+        file_path = parts[0] + '.css'
+        css_query = parts[1]
+
+        result = cssquery(file_path, css_query, verbose)
+
+        if result:
+            if isinstance(result, list):
+                for res in result:
+                    print(res)
+            else:
+                print(result)
+        else:
+            print("No match found.")
 
 if __name__ == "__main__":
     main()
