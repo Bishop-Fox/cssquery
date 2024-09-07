@@ -1,35 +1,77 @@
-# cssquery
+# __CSSQuery Tool__
 
-A command-line tool to query CSS files for specific selectors and their content.
+`cssquery` is a versatile tool for extracting CSS selector contents or specific property values from a CSS file. It can be used both as a command-line tool and as a module in other Python scripts.
 
-## Usage
+## __Features__
 
-```sh
+- Extracts all instances of a CSS selector's content.
+- Retrieves specific property values within a CSS selector.
+- Supports verbose output for detailed debugging information.
+- Can be used as a standalone command-line tool or imported as a module.
 
-python cssquery.py [-v] <file_path> <selector1> <selector2> ...
+## __Usage__
 
+### __Command-Line Tool__
+
+
+```css
+    cssquery[-v] /path/to/file.css.selector[.property]
 ```
 
-- file_path: The path to the CSS file.
-- selector1, selector2, ...: The selectors to match (e.g.,".theme-dark", ".background-primary").
-- -v: Optional verbose flag to print additional debugging information.
+- v: Optional flag to enable verbose output, providing detailed information about the file path, CSS query, selector, property, and matches during execution.
+- `/path/to/file.css.selector[.property]`: The path to the CSS file followed by the selector and optional property you want to query.
 
-## Example
 
-python cssquery.py -v theme.css .theme-dark .background-primary
+## __Examples__
 
-    This will print out the CSS rules that match the .theme-dark and .background-primary selectors in the theme.css file, along with additional debugging information due to the -v flag.
 
-## Installation
+### __Query a Selector:__
 
-Clone the repository: git clone https://github.com/wbishop-foxsername/cssquery.git
-Navigate to the repository directory: cd cssquery
-Run the script: python cssquery.py [-v] <file_path> <selector1> <selector2> ...
+Extract all instances of a selector's content:
+```bash
+cssquery ../base16-dispatch/theme.css.theme-dark
+```
+### __Query a Property:__
 
-## Contributing
+To retrieve a specific property's value within a selector:
 
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+```bash
+cssquery ../base16-dispatch/theme.css.theme-dark.--blue
+```
+### __Verbose Output:__
 
-## License
+To enable verbose output for debugging:
+```bash
+cssquery -v ../base16-dispatch/theme.css.theme-dark.--blue
+```
+### __*As a Module*__
 
-MIT
+You can also import the `cssquery` function into another QMarkdown script:
+```python
+# another_script.qmd
+from cssquery import cssquery
+
+file_path = '../base16-dispatch/theme.css'
+css_query = 'theme-dark.--blue'
+result = cssquery(file_path, css_query, verbose=True)
+
+if result:
+    print("Result:", result)
+else:
+    print("No match found.")
+```
+### __Requirements__
+
+- Python 3.x
+
+### __Installation__
+
+- Clone the repository or download the `cssquery.qmd` script.
+- Ensure you have Python 3.x installed on your system.
+
+### __Contributing__
+Contributions are welcome! If you find a bug or have a feature request, please open an issue or submit a pull request.
+
+### __License__
+
+- This project is licensed under the MIT License.
